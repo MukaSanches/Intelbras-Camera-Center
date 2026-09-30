@@ -2,6 +2,9 @@
 #include <shellapi.h>
 #include <string>
 
+#pragma comment(lib, "user32.lib")
+#pragma comment(lib, "shell32.lib")
+
 int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int)
 {
     wchar_t modulePath[MAX_PATH] = {};

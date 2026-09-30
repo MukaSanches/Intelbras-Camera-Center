@@ -43,10 +43,11 @@ Name: "desktopicon"; Description: "Criar atalho na área de trabalho"; GroupDesc
 Filename: "{app}\{#MyAppExeName}"; Description: "Abrir {#MyAppName}"; Flags: nowait postinstall skipifsilent
 
 [Code]
-procedure OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64);
+function OnDownloadProgress(const Url, FileName: String; const Progress, ProgressMax: Int64): Boolean;
 begin
   if ProgressMax <> 0 then
     WizardForm.StatusLabel.Caption := 'Baixando .NET 8 Desktop Runtime...';
+  Result := True;
 end;
 
 function IsDesktopRuntime8Installed(): Boolean;
