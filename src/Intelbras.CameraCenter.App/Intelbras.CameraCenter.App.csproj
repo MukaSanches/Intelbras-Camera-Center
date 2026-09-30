@@ -7,12 +7,12 @@
     <RootNamespace>Intelbras.CameraCenter.App</RootNamespace>
     <AssemblyName>Intelbras-Camera-Center</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Version>1.2.0</Version>
-    <FileVersion>1.2.0.0</FileVersion>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <Version>1.3.0</Version>
+    <FileVersion>1.3.0.0</FileVersion>
+    <AssemblyVersion>1.3.0.0</AssemblyVersion>
     <Authors>MukaSanches</Authors>
     <Product>Intelbras Camera Center</Product>
-    <Description>Zero-touch discovery Windows VMS/NVR for Intelbras, ONVIF and RTSP-compatible video systems.</Description>
+    <Description>Universal multi-vendor Windows VMS with ONVIF Media/Media2 stream resolution, RTSP negotiation, video and audio.</Description>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 

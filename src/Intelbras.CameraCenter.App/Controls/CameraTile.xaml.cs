@@ -15,8 +15,11 @@ public partial class CameraTile : UserControl, IDisposable
     private readonly MediaPlayer _player;
     private Media? _media;
     private OnvifClient? _onvif;
+    private CancellationTokenSource? _playbackCts;
     private bool _isPlaying;
+    private bool _resolving;
     private bool _recording;
+    private bool _audioMuted;
     private string? _recordingPath;
     private bool _disposed;
 
@@ -29,9 +32,14 @@ public partial class CameraTile : UserControl, IDisposable
 
         CameraNameText.Text = device.Name;
         CameraAddressText.Text = device.DisplayAddress;
-        StreamText.Text = device.StreamTechnology;
+        StreamText.Text = string.Concat(device.StreamTechnology, " • universal resolver");
 
-        _player = new MediaPlayer(VlcRuntime.Instance);
+        _player = new MediaPlayer(VlcRuntime.Instance)
+        {
+            Volume = 100,
+            Mute = false
+        };
+
         _player.Playing += (_, _) => Dispatcher.Invoke(() =>
         {
             _isPlaying = true;
@@ -39,12 +47,21 @@ public partial class CameraTile : UserControl, IDisposable
             IdleText.Visibility = Visibility.Collapsed;
             PlayButton.Content = "■ Parar";
         });
-        _player.Stopped += (_, _) => Dispatcher.Invoke(SetStoppedUi);
+
+        _player.Stopped += (_, _) => Dispatcher.Invoke(() =>
+        {
+            if (!_resolving)
+                SetStoppedUi();
+        });
+
         _player.EncounteredError += (_, _) => Dispatcher.Invoke(() =>
         {
+            if (_resolving)
+                return;
+
             StatusText.Text = "ERRO";
             IdleText.Text = _repository.HasCredential(_device)
-                ? "Não foi possível abrir o stream"
+                ? "O stream caiu. Clique em Reproduzir para renegociar automaticamente."
                 : "Stream protegido • configure o acesso uma única vez";
             IdleText.Visibility = Visibility.Visible;
         });
@@ -52,70 +69,186 @@ public partial class CameraTile : UserControl, IDisposable
         VideoSurface.MediaPlayer = _player;
     }
 
-    private void PlayClick(object sender, RoutedEventArgs e)
+    private async void PlayClick(object sender, RoutedEventArgs e)
     {
-        if (_isPlaying)
+        if (_isPlaying || _resolving)
         {
+            _playbackCts?.Cancel();
+            _resolving = false;
             _player.Stop();
+            SetStoppedUi();
             return;
         }
 
-        if (_device.AuthenticationRequired && !_repository.HasCredential(_device))
-        {
-            var dialog = new CredentialWizardWindow(_repository, _device)
-            {
-                Owner = Window.GetWindow(this)
-            };
-
-            if (dialog.ShowDialog() != true)
-                return;
-        }
-
-        StartPlayback();
+        await StartPlaybackAsync();
     }
 
-    private void StartPlayback()
+    private async Task StartPlaybackAsync()
     {
-        var password = _repository.GetPassword(_device);
-        var uri = _device.BuildStreamUri(password);
+        _playbackCts?.Cancel();
+        _playbackCts?.Dispose();
+        _playbackCts = new CancellationTokenSource();
+        var cancellationToken = _playbackCts.Token;
 
-        if (uri is null)
-        {
-            IdleText.Text = "Endereço de stream inválido";
-            IdleText.Visibility = Visibility.Visible;
-            return;
-        }
-
-        _media?.Dispose();
-        _media = new Media(VlcRuntime.Instance, uri);
-
-        if (uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase) ||
-            uri.Scheme.Equals("rtsps", StringComparison.OrdinalIgnoreCase))
-        {
-            _media.AddOption(":rtsp-tcp");
-        }
-
-        _media.AddOption(":network-caching=350");
-        _media.AddOption(":clock-jitter=0");
-        _media.AddOption(":clock-synchro=0");
-
-        if (_recording)
-        {
-            _recordingPath ??= Path.Combine(
-                AppPaths.Recordings,
-                string.Concat(SafeFileName(_device.Name), "-", DateTime.Now.ToString("yyyyMMdd-HHmmss"), ".ts"));
-
-            var normalized = _recordingPath.Replace(Path.DirectorySeparatorChar, '/');
-            var quote = '"';
-            _media.AddOption(string.Concat(
-                ":sout=#duplicate{dst=display,dst=std{access=file,mux=ts,dst=", quote, normalized, quote, "}}"));
-            _media.AddOption(":sout-keep");
-        }
-
-        StatusText.Text = "CONECTANDO";
-        IdleText.Text = "Conectando...";
+        _resolving = true;
+        _isPlaying = false;
+        PlayButton.Content = "■ Cancelar";
+        StatusText.Text = "RESOLVENDO";
+        IdleText.Text = "Detectando o stream correto...";
         IdleText.Visibility = Visibility.Visible;
-        _player.Play(_media);
+
+        try
+        {
+            var password = _repository.GetPassword(_device);
+            var resolver = new UniversalStreamResolverService();
+            var resolution = await resolver.ResolveAsync(_device, password, cancellationToken);
+
+            if (resolution.CredentialsLikelyRequired && !_repository.HasCredential(_device))
+            {
+                _resolving = false;
+                var dialog = new CredentialWizardWindow(_repository, _device)
+                {
+                    Owner = Window.GetWindow(this)
+                };
+
+                if (dialog.ShowDialog() != true)
+                {
+                    SetStoppedUi();
+                    return;
+                }
+
+                password = _repository.GetPassword(_device);
+                _resolving = true;
+                resolution = await resolver.ResolveAsync(_device, password, cancellationToken);
+            }
+
+            if (resolution.Candidates.Count == 0)
+            {
+                StatusText.Text = "SEM STREAM";
+                IdleText.Text = "Nenhum stream compatível foi encontrado. Em Dispositivos, use Editar para informar uma URL RTSP/HTTP manual.";
+                IdleText.Visibility = Visibility.Visible;
+                return;
+            }
+
+            var index = 0;
+
+            foreach (var candidate in resolution.Candidates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                index++;
+
+                StatusText.Text = "TESTANDO";
+                IdleText.Text = string.Concat(
+                    "Tentativa ", index, "/", resolution.Candidates.Count,
+                    "\n", candidate.Label);
+                IdleText.Visibility = Visibility.Visible;
+
+                if (await TryPlayCandidateAsync(candidate, cancellationToken))
+                {
+                    _resolving = false;
+                    _isPlaying = true;
+                    StatusText.Text = _recording ? "GRAVANDO" : "AO VIVO";
+                    StreamText.Text = string.Concat(candidate.Label, " • vídeo + áudio auto");
+                    PlayButton.Content = "■ Parar";
+                    return;
+                }
+            }
+
+            StatusText.Text = "NÃO ABRIU";
+            IdleText.Text = "O dispositivo respondeu na rede, mas nenhum perfil de mídia conhecido abriu. Tente “Acesso único” ou informe a URL de stream do fabricante.";
+            IdleText.Visibility = Visibility.Visible;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (Exception ex)
+        {
+            StatusText.Text = "ERRO";
+            IdleText.Text = string.Concat("Falha ao negociar o stream: ", ex.Message);
+            IdleText.Visibility = Visibility.Visible;
+        }
+        finally
+        {
+            if (!_isPlaying)
+            {
+                _resolving = false;
+                PlayButton.Content = "▶ Reproduzir";
+            }
+        }
+    }
+
+    private async Task<bool> TryPlayCandidateAsync(
+        StreamCandidate candidate,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            _player.Stop();
+            _media?.Dispose();
+            _media = new Media(VlcRuntime.Instance, candidate.Uri);
+
+            if (candidate.ForceTcp &&
+                (candidate.Uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase) ||
+                 candidate.Uri.Scheme.Equals("rtsps", StringComparison.OrdinalIgnoreCase)))
+            {
+                _media.AddOption(":rtsp-tcp");
+            }
+
+            _media.AddOption(string.Concat(":network-caching=", candidate.NetworkCaching));
+            _media.AddOption(":clock-jitter=0");
+            _media.AddOption(":clock-synchro=0");
+            _media.AddOption(":audio-time-stretch");
+            _media.AddOption(":no-video-title-show");
+
+            if (_recording)
+                AddRecordingOptions(_media);
+
+            _player.Mute = _audioMuted;
+            _player.Volume = 100;
+
+            if (!_player.Play(_media))
+                return false;
+
+            for (var i = 0; i < 24; i++)
+            {
+                await Task.Delay(250, cancellationToken);
+
+                if (_player.IsPlaying)
+                    return true;
+            }
+
+            _player.Stop();
+            return false;
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            try { _player.Stop(); } catch { }
+            return false;
+        }
+    }
+
+    private void AddRecordingOptions(Media media)
+    {
+        _recordingPath ??= Path.Combine(
+            AppPaths.Recordings,
+            string.Concat(SafeFileName(_device.Name), "-", DateTime.Now.ToString("yyyyMMdd-HHmmss"), ".ts"));
+
+        var normalized = _recordingPath.Replace(Path.DirectorySeparatorChar, '/');
+        var quote = '"';
+        media.AddOption(string.Concat(
+            ":sout=#duplicate{dst=display,dst=std{access=file,mux=ts,dst=", quote, normalized, quote, "}}"));
+        media.AddOption(":sout-keep");
+    }
+
+    private void AudioClick(object sender, RoutedEventArgs e)
+    {
+        _audioMuted = !_audioMuted;
+        _player.Mute = _audioMuted;
+        AudioButton.Content = _audioMuted ? "🔇 Mudo" : "🔊 Áudio";
     }
 
     private void SnapshotClick(object sender, RoutedEventArgs e)
@@ -129,7 +262,7 @@ public partial class CameraTile : UserControl, IDisposable
         StatusText.Text = ok ? "SNAPSHOT" : "SEM VÍDEO";
     }
 
-    private void RecordClick(object sender, RoutedEventArgs e)
+    private async void RecordClick(object sender, RoutedEventArgs e)
     {
         _recording = !_recording;
 
@@ -149,7 +282,8 @@ public partial class CameraTile : UserControl, IDisposable
         if (_isPlaying)
         {
             _player.Stop();
-            StartPlayback();
+            _isPlaying = false;
+            await StartPlaybackAsync();
         }
     }
 
@@ -227,6 +361,8 @@ public partial class CameraTile : UserControl, IDisposable
             return;
 
         _disposed = true;
+        _playbackCts?.Cancel();
+        _playbackCts?.Dispose();
         try { _player.Stop(); } catch { }
         VideoSurface.MediaPlayer = null;
         _media?.Dispose();

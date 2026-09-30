@@ -34,6 +34,9 @@
                            Foreground="#708296"
                            HorizontalAlignment="Center"
                            VerticalAlignment="Center"
+                           TextAlignment="Center"
+                           TextWrapping="Wrap"
+                           MaxWidth="340"
                            FontSize="13"/>
             </Grid>
 
@@ -43,11 +46,13 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="StreamText" VerticalAlignment="Center" Foreground="{StaticResource MutedTextBrush}" FontSize="11"/>
+                <TextBlock x:Name="StreamText" VerticalAlignment="Center" Foreground="{StaticResource MutedTextBrush}" FontSize="11" TextTrimming="CharacterEllipsis"/>
                 <Button Grid.Column="1" x:Name="PlayButton" Style="{StaticResource GhostButton}" Content="▶ Reproduzir" Click="PlayClick" Margin="4,0"/>
-                <Button Grid.Column="2" Style="{StaticResource GhostButton}" Content="◉ Snapshot" Click="SnapshotClick" Margin="4,0"/>
-                <Button Grid.Column="3" x:Name="RecordButton" Style="{StaticResource GhostButton}" Content="● Gravar" Click="RecordClick" Margin="4,0"/>
+                <Button Grid.Column="2" x:Name="AudioButton" Style="{StaticResource GhostButton}" Content="🔊 Áudio" Click="AudioClick" Margin="4,0"/>
+                <Button Grid.Column="3" Style="{StaticResource GhostButton}" Content="◉ Snapshot" Click="SnapshotClick" Margin="4,0"/>
+                <Button Grid.Column="4" x:Name="RecordButton" Style="{StaticResource GhostButton}" Content="● Gravar" Click="RecordClick" Margin="4,0"/>
             </Grid>
 
             <Border Grid.Row="3" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Padding="10,8">
@@ -56,7 +61,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Text="PTZ ONVIF • Profile T" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" FontSize="11"/>
+                    <TextBlock Text="PTZ ONVIF • Media/Media2 • Profile T/S" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center" FontSize="11"/>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button Style="{StaticResource GhostButton}" Content="←" Tag="left" PreviewMouseLeftButtonDown="PtzStart" PreviewMouseLeftButtonUp="PtzStop" Padding="10,5" Margin="2,0"/>
                         <Button Style="{StaticResource GhostButton}" Content="↑" Tag="up" PreviewMouseLeftButtonDown="PtzStart" PreviewMouseLeftButtonUp="PtzStop" Padding="10,5" Margin="2,0"/>

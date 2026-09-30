@@ -1,4 +1,4 @@
-# Intelbras Camera Center v1.2.0 — Zero-Touch Discovery
+# Intelbras Camera Center v1.3.0 — Universal Media Engine
 
 VMS/NVR desktop para Windows voltado a câmeras IP, DVRs, NVRs Intelbras e ecossistemas ONVIF/RTSP.
 
@@ -8,8 +8,8 @@ VMS/NVR desktop para Windows voltado a câmeras IP, DVRs, NVRs Intelbras e ecoss
 
 A versão recomendada fica em **Releases**:
 
-- Intelbras-Camera-Center-Setup-v1.2.0.exe
-- Intelbras-Camera-Center-Portable-v1.2.0.zip
+- Intelbras-Camera-Center-Setup-v1.3.0.exe
+- Intelbras-Camera-Center-Portable-v1.3.0.zip
 - Intelbras-Camera-Center.exe
 - SHA256SUMS.txt
 
@@ -30,7 +30,17 @@ A pasta `dist/` da branch `main` também recebe o instalador, launcher e Portabl
 - métricas Prometheus
 - Windows DPAPI
 
-## v1.2.0
+## v1.3.0
+
+### Universal Media Engine
+
+O player não presume mais que um dispositivo genérico usa o caminho RTSP Intelbras/Dahua. Ao clicar em Reproduzir, o app negocia automaticamente ONVIF Media/Media2 GetStreamUri, caminhos multimarcas, autenticação RTSP Basic/Digest, transporte TCP e fallback automático/UDP, além de HTTP/MJPEG.
+
+Perfis de compatibilidade incluídos: Intelbras, Dahua, Amcrest, Hikvision, HiLook, Axis, Reolink, Uniview/UNV, TP-Link/Tapo, Foscam e padrões RTSP genéricos.
+
+Quando a câmera fornece áudio dentro do stream, o LibVLC reproduz vídeo e áudio; cada tile possui controle Áudio/Mudo.
+
+
 
 ### Vídeo e transporte
 
