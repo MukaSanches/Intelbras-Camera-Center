@@ -84,9 +84,10 @@ public partial class CameraTile : UserControl, IDisposable
                 AppPaths.Recordings,
                 string.Concat(SafeFileName(_device.Name), "-", DateTime.Now.ToString("yyyyMMdd-HHmmss"), ".ts"));
 
-            var normalized = _recordingPath.Replace("\", "/");
+            var normalized = _recordingPath.Replace(Path.DirectorySeparatorChar, '/');
+            var quote = '"';
             _media.AddOption(string.Concat(
-                ":sout=#duplicate{dst=display,dst=std{access=file,mux=ts,dst=\"", normalized, "\"}}"));
+                ":sout=#duplicate{dst=display,dst=std{access=file,mux=ts,dst=", quote, normalized, quote, "}}"));
             _media.AddOption(":sout-keep");
         }
 
