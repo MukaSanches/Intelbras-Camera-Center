@@ -1,0 +1,213 @@
+<Window x:Class="Intelbras.CameraCenter.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Intelbras Camera Center"
+        Width="1500" Height="900"
+        MinWidth="1120" MinHeight="700"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{StaticResource WindowBackgroundBrush}"
+        Closing="OnClosing">
+
+    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="42"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid Grid.Row="0" Background="#0D131B" MouseLeftButtonDown="TitleBarMouseDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="46"/>
+                    <ColumnDefinition Width="46"/>
+                    <ColumnDefinition Width="46"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="16,0">
+                    <Border Width="22" Height="22" Background="{StaticResource AccentBrush}" CornerRadius="6" Margin="0,0,9,0">
+                        <TextBlock Text="IC" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold"/>
+                    </Border>
+                    <TextBlock Text="Intelbras Camera Center" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="  •  VMS 1.0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button Grid.Column="1" Content="—" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="MinimizeClick"/>
+                <Button Grid.Column="2" Content="□" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="MaximizeClick"/>
+                <Button Grid.Column="3" Content="✕" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="CloseClick"/>
+            </Grid>
+
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="235"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <Border Grid.Column="0" Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                    <Grid Margin="14">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Margin="4,12,4,22">
+                            <TextBlock Text="CENTRAL DE VÍDEO" Foreground="{StaticResource MutedTextBrush}" FontSize="10" FontWeight="Bold"/>
+                            <TextBlock Text="Controle local" FontSize="20" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1">
+                            <Button Style="{StaticResource NavButton}" Content="▣   Ao vivo" Tag="Live" Click="NavClick"/>
+                            <Button Style="{StaticResource NavButton}" Content="◫   Dispositivos" Tag="Devices" Click="NavClick"/>
+                            <Button Style="{StaticResource NavButton}" Content="⚡   Eventos" Tag="Events" Click="NavClick"/>
+                            <Button Style="{StaticResource NavButton}" Content="◷   Gravações" Tag="Recordings" Click="NavClick"/>
+                            <Button Style="{StaticResource NavButton}" Content="⌁   Analytics" Tag="Analytics" Click="NavClick"/>
+                            <Button Style="{StaticResource NavButton}" Content="⚙   Configurações" Tag="Settings" Click="NavClick"/>
+                        </StackPanel>
+
+                        <Border Grid.Row="2" Style="{StaticResource CardBorder}" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="STATUS" Foreground="{StaticResource MutedTextBrush}" FontSize="9" FontWeight="Bold"/>
+                                <TextBlock x:Name="DeviceCountText" Text="0 dispositivos" FontWeight="SemiBold" Margin="0,5,0,0"/>
+                                <TextBlock x:Name="GlobalStatusText" Text="Sistema pronto" Foreground="#55E6A5" FontSize="11" Margin="0,3,0,0"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Column="1" Margin="24">
+                    <Grid x:Name="LivePage">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Monitoramento ao vivo" FontSize="28" FontWeight="SemiBold"/>
+                                <TextBlock Text="RTSP acelerado por LibVLC, snapshots e gravação local por câmera."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button x:Name="DiscoverButton" Style="{StaticResource GhostButton}" Content="⌁ Descobrir ONVIF" Click="DiscoverClick" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="+ Adicionar câmera" Click="AddCameraClick"/>
+                            </StackPanel>
+                        </Grid>
+                        <ScrollViewer Grid.Row="1" Margin="0,18,0,0" VerticalScrollBarVisibility="Auto">
+                            <WrapPanel x:Name="LivePanel"/>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <Grid x:Name="DevicesPage" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="Dispositivos" FontSize="28" FontWeight="SemiBold"/>
+                                <TextBlock Text="Câmeras IP, DVRs, NVRs e linha Mibo."
+                                           Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Style="{StaticResource GhostButton}" Content="Consultar CGI" Click="DeviceInfoClick" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Editar" Click="EditCameraClick" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Remover" Click="RemoveCameraClick" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource PrimaryButton}" Content="+ Adicionar" Click="AddCameraClick"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <DataGrid Grid.Row="1" x:Name="DevicesGrid" Margin="0,20,0,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="2*"/>
+                                <DataGridTextColumn Header="IP / Host" Binding="{Binding Host}" Width="2*"/>
+                                <DataGridTextColumn Header="Tipo" Binding="{Binding Kind}" Width="*"/>
+                                <DataGridTextColumn Header="Canal" Binding="{Binding Channel}" Width="80"/>
+                                <DataGridTextColumn Header="RTSP" Binding="{Binding RtspPort}" Width="90"/>
+                                <DataGridCheckBoxColumn Header="Substream" Binding="{Binding UseSubStream}" Width="100"/>
+                                <DataGridCheckBoxColumn Header="Eventos" Binding="{Binding EnableEvents}" Width="100"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+
+                    <Grid x:Name="EventsPage" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="Eventos inteligentes" FontSize="28" FontWeight="SemiBold"/>
+                            <TextBlock Text="Movimento, IVS, linha, região, tráfego/LPR e eventos faciais quando fornecidos pelo equipamento."
+                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                        </StackPanel>
+                        <DataGrid Grid.Row="1" x:Name="EventsGrid" Margin="0,20,0,0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Horário" Binding="{Binding Timestamp, StringFormat=dd/MM HH:mm:ss}" Width="150"/>
+                                <DataGridTextColumn Header="Dispositivo" Binding="{Binding DeviceName}" Width="2*"/>
+                                <DataGridTextColumn Header="Evento" Binding="{Binding Summary}" Width="2*"/>
+                                <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="2*"/>
+                                <DataGridTextColumn Header="Ação" Binding="{Binding Action}" Width="*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+
+                    <Grid x:Name="RecordingsPage" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Gravações e evidências" FontSize="28" FontWeight="SemiBold"/>
+                            <TextBlock Text="As gravações locais são salvas em:"
+                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                            <Border Style="{StaticResource CardBorder}" Margin="0,20,0,0">
+                                <StackPanel>
+                                    <TextBlock x:Name="RecordingsPathText" FontFamily="Consolas"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Abrir pasta de gravações" Click="OpenRecordingsClick"
+                                            HorizontalAlignment="Left" Margin="0,14,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="AnalyticsPage" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Analytics" FontSize="28" FontWeight="SemiBold"/>
+                            <TextBlock Text="Visão unificada dos recursos inteligentes expostos pelos equipamentos."
+                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                            <WrapPanel Margin="0,20,0,0">
+                                <Border Style="{StaticResource CardBorder}" Width="260" Height="130" Margin="0,0,12,12">
+                                    <StackPanel><TextBlock Text="LPR / Tráfego" FontSize="17" FontWeight="SemiBold"/><TextBlock Text="eventManager.cgi" Foreground="{StaticResource MutedTextBrush}" Margin="0,8,0,0"/></StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorder}" Width="260" Height="130" Margin="0,0,12,12">
+                                    <StackPanel><TextBlock Text="IVS" FontSize="17" FontWeight="SemiBold"/><TextBlock Text="Linha, região e regras do dispositivo" Foreground="{StaticResource MutedTextBrush}" Margin="0,8,0,0"/></StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource CardBorder}" Width="260" Height="130" Margin="0,0,12,12">
+                                    <StackPanel><TextBlock Text="Face" FontSize="17" FontWeight="SemiBold"/><TextBlock Text="Eventos quando suportados" Foreground="{StaticResource MutedTextBrush}" Margin="0,8,0,0"/></StackPanel>
+                                </Border>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="SettingsPage" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Configurações" FontSize="28" FontWeight="SemiBold"/>
+                            <TextBlock Text="Segurança local e diretórios do Intelbras Camera Center."
+                                       Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
+                            <Border Style="{StaticResource CardBorder}" Margin="0,20,0,0">
+                                <StackPanel>
+                                    <TextBlock Text="Segurança de credenciais" FontSize="16" FontWeight="SemiBold"/>
+                                    <TextBlock Text="Senhas não são gravadas em texto puro. O app usa Windows DPAPI vinculado ao usuário atual."
+                                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,7,0,0"/>
+                                    <TextBlock Text="Dados locais" FontSize="16" FontWeight="SemiBold" Margin="0,20,0,0"/>
+                                    <TextBlock x:Name="DataPathText" Foreground="{StaticResource MutedTextBrush}" FontFamily="Consolas" Margin="0,7,0,0"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Border>
+</Window>
