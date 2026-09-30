@@ -17,6 +17,7 @@ public partial class MainWindow : Window
     private readonly CameraRepository _repository;
     private readonly ObservableCollection<CameraEvent> _events = new();
     private readonly Dictionary<Guid, CancellationTokenSource> _eventMonitors = new();
+    private bool _startupDiscoveryCompleted;
 
     public MainWindow(CameraRepository repository)
     {
@@ -34,6 +35,15 @@ public partial class MainWindow : Window
         RebuildLiveGrid();
         StartEventMonitors();
         UpdateStatus();
+
+        Loaded += async (_, _) =>
+        {
+            if (_startupDiscoveryCompleted)
+                return;
+
+            _startupDiscoveryCompleted = true;
+            await RunUniversalDiscoveryAsync(silent: true);
+        };
     }
 
     private void DevicesCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -143,42 +153,100 @@ public partial class MainWindow : Window
 
     private async void DiscoverClick(object sender, RoutedEventArgs e)
     {
+        await RunUniversalDiscoveryAsync(silent: false);
+    }
+
+    private async Task RunUniversalDiscoveryAsync(bool silent)
+    {
         DiscoverButton.IsEnabled = false;
-        GlobalStatusText.Text = "Procurando dispositivos ONVIF...";
+        GlobalStatusText.Text = "Mapeando ONVIF, SSDP/UPnP e serviços de vídeo da rede...";
 
         try
         {
-            var discovered = await new WsDiscoveryService().DiscoverAsync(TimeSpan.FromSeconds(4));
+            var discovered = await new UniversalDiscoveryService().DiscoverAsync();
             var added = 0;
+            var updated = 0;
 
             foreach (var item in discovered)
             {
-                if (_repository.Devices.Any(x => x.Host.Equals(item.Host, StringComparison.OrdinalIgnoreCase)))
-                    continue;
+                var existing = _repository.Devices.FirstOrDefault(x =>
+                    x.Host.Equals(item.Host, StringComparison.OrdinalIgnoreCase) &&
+                    x.Channel == 1);
 
-                _repository.Devices.Add(new CameraDevice
+                if (existing is null)
                 {
-                    Name = string.Concat("ONVIF ", item.Host),
-                    Host = item.Host,
-                    Kind = DeviceKind.Camera,
-                    EnableEvents = false
-                });
-                added++;
+                    _repository.Devices.Add(new CameraDevice
+                    {
+                        Name = item.DisplayName,
+                        Host = item.Host,
+                        Kind = item.Kind,
+                        RtspPort = item.RtspPort,
+                        HttpPort = item.HttpPort,
+                        Channel = 1,
+                        EnableEvents = false,
+                        Manufacturer = item.Manufacturer,
+                        DiscoverySource = item.DiscoveryTechnology,
+                        ChannelCountHint = item.ChannelCountHint,
+                        AuthenticationRequired = item.AuthenticationRequired
+                    });
+                    added++;
+                }
+                else
+                {
+                    existing.Manufacturer = item.Manufacturer;
+                    existing.DiscoverySource = item.DiscoveryTechnology;
+                    existing.ChannelCountHint = Math.Max(existing.ChannelCountHint, item.ChannelCountHint);
+                    existing.AuthenticationRequired |= item.AuthenticationRequired;
+                    if (existing.Kind == DeviceKind.Other && item.Kind != DeviceKind.Other)
+                        existing.Kind = item.Kind;
+                    updated++;
+                }
             }
 
-            if (added > 0)
+            if (added > 0 || updated > 0)
                 await _repository.SaveAsync();
 
-            GlobalStatusText.Text = string.Concat(discovered.Count, " encontrados • ", added, " adicionados");
+            GlobalStatusText.Text = string.Concat(
+                discovered.Count, " endpoints de vídeo • ",
+                added, " novos • ", updated, " atualizados");
+
+            if (!silent && discovered.Count == 0)
+            {
+                MessageBox.Show(this,
+                    "Nenhum endpoint de vídeo foi identificado nesta rede. Equipamentos em VLAN, outra sub-rede ou via Intelbras Cloud podem exigir cadastro adicional.",
+                    "Descoberta mundial",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
         catch (Exception ex)
         {
-            GlobalStatusText.Text = "Falha na descoberta ONVIF";
-            MessageBox.Show(this, ex.Message, "Descoberta ONVIF", MessageBoxButton.OK, MessageBoxImage.Warning);
+            GlobalStatusText.Text = "Falha na descoberta de rede";
+            if (!silent)
+                MessageBox.Show(this, ex.Message, "Descoberta mundial", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
         finally
         {
             DiscoverButton.IsEnabled = true;
+        }
+    }
+
+    private async void CredentialClick(object sender, RoutedEventArgs e)
+    {
+        if (DevicesGrid.SelectedItem is not CameraDevice device)
+        {
+            MessageBox.Show(this, "Selecione um dispositivo primeiro.",
+                "Acesso único", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        var dialog = new CredentialWizardWindow(_repository, device) { Owner = this };
+        if (dialog.ShowDialog() == true)
+        {
+            await _repository.SaveAsync();
+            DevicesGrid.Items.Refresh();
+            RebuildLiveGrid();
+            RestartEventMonitors();
         }
     }
 

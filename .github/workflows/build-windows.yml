@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 env:
-  VERSION: '1.1.0'
+  VERSION: '1.2.0'
 
 jobs:
   build:
@@ -92,7 +92,7 @@ jobs:
       - name: Upload complete workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Intelbras-Camera-Center-v1.1.0-Windows
+          name: Intelbras-Camera-Center-v1.2.0-Windows
           path: |
             artifacts/dist/**
             artifacts/release/**
@@ -116,7 +116,7 @@ jobs:
             gh release upload $tag $setup $portable $launcher $hashes --clobber --repo $repo
             if ($LASTEXITCODE -ne 0) { throw "Falha ao atualizar assets da Release $tag." }
           } else {
-            gh release create $tag $setup $portable $launcher $hashes --repo $repo --target "${{ github.sha }}" --title "Intelbras Camera Center v$env:VERSION — Global Interop" --notes-file RELEASE_NOTES_1.1.0.md
+            gh release create $tag $setup $portable $launcher $hashes --repo $repo --target "${{ github.sha }}" --title "Intelbras Camera Center v$env:VERSION — Zero-Touch Discovery" --notes-file RELEASE_NOTES_1.2.0.md
             if ($LASTEXITCODE -ne 0) { throw "Falha ao criar a Release $tag." }
           }
 

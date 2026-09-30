@@ -51,6 +51,9 @@ public sealed class CameraRepository
         File.Move(temp, AppPaths.DevicesFile, true);
     }
 
+    public bool HasCredential(CameraDevice device)
+        => !string.IsNullOrWhiteSpace(device.PasswordEncrypted);
+
     public string GetPassword(CameraDevice device) => DpapiProtector.Unprotect(device.PasswordEncrypted);
 
     public void SetPassword(CameraDevice device, string password)

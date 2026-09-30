@@ -1,4 +1,4 @@
-# Intelbras Camera Center v1.1.0 — Global Interop
+# Intelbras Camera Center v1.2.0 — Zero-Touch Discovery
 
 VMS/NVR desktop para Windows voltado a câmeras IP, DVRs, NVRs Intelbras e ecossistemas ONVIF/RTSP.
 
@@ -8,8 +8,8 @@ VMS/NVR desktop para Windows voltado a câmeras IP, DVRs, NVRs Intelbras e ecoss
 
 A versão recomendada fica em **Releases**:
 
-- Intelbras-Camera-Center-Setup-v1.1.0.exe
-- Intelbras-Camera-Center-Portable-v1.1.0.zip
+- Intelbras-Camera-Center-Setup-v1.2.0.exe
+- Intelbras-Camera-Center-Portable-v1.2.0.zip
 - Intelbras-Camera-Center.exe
 - SHA256SUMS.txt
 
@@ -30,7 +30,7 @@ A pasta `dist/` da branch `main` também recebe o instalador, launcher e Portabl
 - métricas Prometheus
 - Windows DPAPI
 
-## v1.1.0
+## v1.2.0
 
 ### Vídeo e transporte
 

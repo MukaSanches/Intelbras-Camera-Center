@@ -1,5 +1,5 @@
 #define MyAppName "Intelbras Camera Center"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "MukaSanches"
 #define MyAppExeName "Intelbras-Camera-Center.exe"
 
@@ -12,7 +12,7 @@ DefaultDirName={autopf}\Intelbras Camera Center
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=..\artifacts\dist
-OutputBaseFilename=Intelbras-Camera-Center-Setup-v1.1.0
+OutputBaseFilename=Intelbras-Camera-Center-Setup-v1.2.0
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern

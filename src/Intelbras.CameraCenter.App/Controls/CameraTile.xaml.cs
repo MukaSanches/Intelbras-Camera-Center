@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Intelbras.CameraCenter.App.Dialogs;
 using Intelbras.CameraCenter.App.Models;
 using Intelbras.CameraCenter.App.Services;
 using LibVLCSharp.Shared;
@@ -42,7 +43,9 @@ public partial class CameraTile : UserControl, IDisposable
         _player.EncounteredError += (_, _) => Dispatcher.Invoke(() =>
         {
             StatusText.Text = "ERRO";
-            IdleText.Text = "Não foi possível abrir o stream";
+            IdleText.Text = _repository.HasCredential(_device)
+                ? "Não foi possível abrir o stream"
+                : "Stream protegido • configure o acesso uma única vez";
             IdleText.Visibility = Visibility.Visible;
         });
 
@@ -55,6 +58,17 @@ public partial class CameraTile : UserControl, IDisposable
         {
             _player.Stop();
             return;
+        }
+
+        if (_device.AuthenticationRequired && !_repository.HasCredential(_device))
+        {
+            var dialog = new CredentialWizardWindow(_repository, _device)
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            if (dialog.ShowDialog() != true)
+                return;
         }
 
         StartPlayback();

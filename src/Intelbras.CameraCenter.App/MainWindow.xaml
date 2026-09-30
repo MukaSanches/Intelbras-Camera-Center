@@ -28,7 +28,7 @@
                         <TextBlock Text="IC" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold"/>
                     </Border>
                     <TextBlock Text="Intelbras Camera Center" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="  •  VMS 1.1 • GLOBAL INTEROP" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="  •  VMS 1.2 • ZERO-TOUCH DISCOVERY" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button Grid.Column="1" Content="—" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="MinimizeClick"/>
                 <Button Grid.Column="2" Content="□" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="MaximizeClick"/>
@@ -86,11 +86,11 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Monitoramento ao vivo" FontSize="28" FontWeight="SemiBold"/>
-                                <TextBlock Text="RTSP/RTSPS, HTTP/HLS, SRT, ONVIF PTZ, snapshots, gravação e gateways WebRTC."
+                                <TextBlock Text="Descoberta automática ONVIF + SSDP/UPnP + LAN, RTSP/RTSPS, HLS/SRT, PTZ e gateways WebRTC."
                                            Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                <Button x:Name="DiscoverButton" Style="{StaticResource GhostButton}" Content="⌁ Descobrir ONVIF" Click="DiscoverClick" Margin="0,0,8,0"/>
+                                <Button x:Name="DiscoverButton" Style="{StaticResource GhostButton}" Content="⌁ Descoberta mundial" Click="DiscoverClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource PrimaryButton}" Content="+ Adicionar câmera" Click="AddCameraClick"/>
                             </StackPanel>
                         </Grid>
@@ -111,10 +111,11 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Dispositivos" FontSize="28" FontWeight="SemiBold"/>
-                                <TextBlock Text="Câmeras IP, DVRs, NVRs e linha Mibo."
+                                <TextBlock Text="Câmeras IP, DVRs, NVRs, servidores, storages e endpoints ONVIF/RTSP encontrados automaticamente."
                                            Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Style="{StaticResource GhostButton}" Content="Acesso único" Click="CredentialClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Consultar CGI" Click="DeviceInfoClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Testar ONVIF" Click="ProbeOnvifClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="→ go2rtc" Click="PublishGo2RtcClick" Margin="0,0,8,0"/>
@@ -129,7 +130,11 @@
                                 <DataGridTextColumn Header="Nome" Binding="{Binding Name}" Width="2*"/>
                                 <DataGridTextColumn Header="IP / Host" Binding="{Binding Host}" Width="2*"/>
                                 <DataGridTextColumn Header="Tipo" Binding="{Binding Kind}" Width="*"/>
+                                <DataGridTextColumn Header="Fabricante" Binding="{Binding Manufacturer}" Width="150"/>
+                                <DataGridTextColumn Header="Descoberta" Binding="{Binding DiscoverySource}" Width="180"/>
+                                <DataGridTextColumn Header="Acesso" Binding="{Binding AccessStatus}" Width="160"/>
                                 <DataGridTextColumn Header="Canal" Binding="{Binding Channel}" Width="80"/>
+                                <DataGridTextColumn Header="Canais" Binding="{Binding ChannelCountHint}" Width="75"/>
                                 <DataGridTextColumn Header="RTSP" Binding="{Binding RtspPort}" Width="90"/>
                                 <DataGridTextColumn Header="Stream" Binding="{Binding StreamTechnology}" Width="140"/>
                                 <DataGridCheckBoxColumn Header="Substream" Binding="{Binding UseSubStream}" Width="100"/>
