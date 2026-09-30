@@ -1,5 +1,5 @@
-Intelbras Camera Center - Portable
-==================================
-Execute Intelbras-Camera-Center.exe na pasta raiz do pacote/repositório.
+Intelbras Camera Center v1.1.0 - Portable
+===============================================
+Execute Intelbras-Camera-Center.exe na pasta raiz.
 Requisito: Microsoft .NET 8 Desktop Runtime x64.
-O instalador configura o runtime automaticamente quando necessário.
+Protocolos/gateways: RTSP, RTSPS, HTTP/HLS, SRT, ONVIF, go2rtc/WebRTC.
