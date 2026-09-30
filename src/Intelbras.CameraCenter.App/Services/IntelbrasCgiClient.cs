@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http;
 using Intelbras.CameraCenter.App.Models;
 
 namespace Intelbras.CameraCenter.App.Services;
