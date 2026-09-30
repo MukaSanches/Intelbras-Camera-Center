@@ -1,0 +1,112 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0/win-x64",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {},
+    ".NETCoreApp,Version=v8.0/win-x64": {
+      "Intelbras-Camera-Center/1.0.0": {
+        "dependencies": {
+          "LibVLCSharp.WPF": "3.10.1",
+          "WPF-UI": "4.3.0",
+          "runtimepack.Microsoft.Windows.SDK.NET.Ref": "10.0.19041.57"
+        },
+        "runtime": {
+          "Intelbras-Camera-Center.dll": {}
+        }
+      },
+      "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.19041.57": {
+        "runtime": {
+          "Microsoft.Windows.SDK.NET.dll": {
+            "assemblyVersion": "10.0.19041.38",
+            "fileVersion": "10.0.19041.55"
+          },
+          "WinRT.Runtime.dll": {
+            "assemblyVersion": "2.2.0.0",
+            "fileVersion": "2.2.0.48161"
+          }
+        }
+      },
+      "LibVLCSharp/3.10.1": {
+        "runtime": {
+          "lib/net8.0/LibVLCSharp.dll": {
+            "assemblyVersion": "3.10.1.0",
+            "fileVersion": "3.10.1.0"
+          }
+        }
+      },
+      "LibVLCSharp.WPF/3.10.1": {
+        "dependencies": {
+          "LibVLCSharp": "3.10.1"
+        },
+        "runtime": {
+          "lib/net6.0-windows7.0/LibVLCSharp.WPF.dll": {
+            "assemblyVersion": "3.10.1.0",
+            "fileVersion": "3.10.1.0"
+          }
+        }
+      },
+      "WPF-UI/4.3.0": {
+        "dependencies": {
+          "WPF-UI.Abstractions": "4.3.0"
+        },
+        "runtime": {
+          "lib/net8.0-windows7.0/Wpf.Ui.dll": {
+            "assemblyVersion": "4.3.0.0",
+            "fileVersion": "4.3.0.0"
+          }
+        }
+      },
+      "WPF-UI.Abstractions/4.3.0": {
+        "runtime": {
+          "lib/net8.0/Wpf.Ui.Abstractions.dll": {
+            "assemblyVersion": "4.3.0.0",
+            "fileVersion": "4.3.0.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "Intelbras-Camera-Center/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "runtimepack.Microsoft.Windows.SDK.NET.Ref/10.0.19041.57": {
+      "type": "runtimepack",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "LibVLCSharp/3.10.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6iSrYMk6RU8fyftdXrfR1TW3xpR/WhEmliORuWvAu2N05wECb8k2hykWiU53/1zqx616v/qUlDbJJyqv78MDkQ==",
+      "path": "libvlcsharp/3.10.1",
+      "hashPath": "libvlcsharp.3.10.1.nupkg.sha512"
+    },
+    "LibVLCSharp.WPF/3.10.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-aE/yQPT57bYl+xZ7decqS9TtwvWncIFOzyd7yauM4EWTW8XAfjjwp4HPEx/vh9+uE5GpskIM2EtUc7tyyDjoVQ==",
+      "path": "libvlcsharp.wpf/3.10.1",
+      "hashPath": "libvlcsharp.wpf.3.10.1.nupkg.sha512"
+    },
+    "WPF-UI/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-SIHhc8lIrhEQ/1cLFZN6Dtf8cqsLm4myBULj9obnacd9TyDs2vizhKYzRzTlcPEcnzb3L4EstvPN3M6kcXbJCA==",
+      "path": "wpf-ui/4.3.0",
+      "hashPath": "wpf-ui.4.3.0.nupkg.sha512"
+    },
+    "WPF-UI.Abstractions/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7Kj9DmCCo4SOCd1jAiw4+EcMFP2nR8rLLvitAYzVtzbWToTsodkbie24+8x9C4LDLxkopWEUGX62szqqNy7oeg==",
+      "path": "wpf-ui.abstractions/4.3.0",
+      "hashPath": "wpf-ui.abstractions.4.3.0.nupkg.sha512"
+    }
+  }
+}
