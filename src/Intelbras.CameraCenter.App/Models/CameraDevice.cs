@@ -43,12 +43,24 @@ public sealed class CameraDevice : INotifyPropertyChanged
     [JsonIgnore]
     public string DisplayAddress => string.IsNullOrWhiteSpace(Host) ? "não configurado" : Host;
 
-    public Uri? BuildRtspUri(string password)
+    [JsonIgnore]
+    public string StreamTechnology
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(CustomRtspUrl))
+                return UseSubStream ? "RTSP • Substream" : "RTSP • Main stream";
+
+            return Uri.TryCreate(CustomRtspUrl, UriKind.Absolute, out var uri)
+                ? uri.Scheme.ToUpperInvariant()
+                : "STREAM";
+        }
+    }
+
+    public Uri? BuildStreamUri(string password)
     {
         if (!string.IsNullOrWhiteSpace(CustomRtspUrl))
-        {
             return Uri.TryCreate(CustomRtspUrl, UriKind.Absolute, out var custom) ? custom : null;
-        }
 
         if (string.IsNullOrWhiteSpace(Host))
             return null;
@@ -65,6 +77,8 @@ public sealed class CameraDevice : INotifyPropertyChanged
 
         return Uri.TryCreate(url, UriKind.Absolute, out var result) ? result : null;
     }
+
+    public Uri? BuildRtspUri(string password) => BuildStreamUri(password);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

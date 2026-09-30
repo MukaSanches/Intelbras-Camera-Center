@@ -1,0 +1,75 @@
+<Window x:Class="Intelbras.CameraCenter.App.Dialogs.IntegrationsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Central de Integrações" Width="720" Height="720"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
+        Background="{StaticResource WindowBackgroundBrush}">
+    <Grid Margin="28">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel>
+            <TextBlock Text="Central de Integrações Globais" FontSize="26" FontWeight="SemiBold"/>
+            <TextBlock Text="go2rtc • WebRTC/WHEP/WHIP • Frigate • Home Assistant • API local • Prometheus"
+                       Foreground="{StaticResource MutedTextBrush}" Margin="0,6,0,18"/>
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="go2rtc" FontSize="17" FontWeight="SemiBold"/>
+                        <TextBlock Text="Gateway para WebRTC/WHEP, WHIP, HLS, MP4, MJPEG, RTMP, HomeKit e FFmpeg."
+                                   Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,5,0,10"/>
+                        <TextBox x:Name="Go2RtcBox"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Testar go2rtc" Click="TestGo2RtcClick"
+                                HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Frigate NVR / AI" FontSize="17" FontWeight="SemiBold"/>
+                        <TextBlock Text="Verificação pela API oficial do Frigate."
+                                   Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,10"/>
+                        <TextBox x:Name="FrigateBox"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Testar Frigate" Click="TestFrigateClick"
+                                HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorder}" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="Home Assistant" FontSize="17" FontWeight="SemiBold"/>
+                        <TextBox x:Name="HomeAssistantBox" Margin="0,10,0,8"/>
+                        <TextBlock Text="Long-Lived Access Token" Foreground="{StaticResource MutedTextBrush}"/>
+                        <PasswordBox x:Name="HomeAssistantTokenBox" Margin="0,5,0,0"/>
+                        <Button Style="{StaticResource GhostButton}" Content="Testar Home Assistant" Click="TestHomeAssistantClick"
+                                HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Text="API local / Observabilidade" FontSize="17" FontWeight="SemiBold"/>
+                        <CheckBox x:Name="EnableApiCheck" Content="Ativar API HTTP somente em 127.0.0.1" Margin="0,10,0,8"/>
+                        <TextBlock Text="Porta" Foreground="{StaticResource MutedTextBrush}"/>
+                        <TextBox x:Name="ApiPortBox" Width="120" HorizontalAlignment="Left" Margin="0,5,0,8"/>
+                        <TextBlock Text="/health • /api/cameras • /metrics (formato Prometheus)"
+                                   Foreground="{StaticResource MutedTextBrush}"/>
+                    </StackPanel>
+                </Border>
+
+                <TextBlock x:Name="StatusText" Foreground="{StaticResource AccentBrush}" TextWrapping="Wrap" Margin="0,14,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
+            <Button Style="{StaticResource GhostButton}" Content="Fechar" Click="CloseClick" Margin="0,0,8,0"/>
+            <Button Style="{StaticResource PrimaryButton}" Content="Salvar integrações" Click="SaveClick"/>
+        </StackPanel>
+    </Grid>
+</Window>

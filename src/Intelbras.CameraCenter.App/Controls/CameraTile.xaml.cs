@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using Intelbras.CameraCenter.App.Models;
 using Intelbras.CameraCenter.App.Services;
 using LibVLCSharp.Shared;
@@ -12,6 +13,7 @@ public partial class CameraTile : UserControl, IDisposable
     private readonly CameraDevice _device;
     private readonly MediaPlayer _player;
     private Media? _media;
+    private OnvifClient? _onvif;
     private bool _isPlaying;
     private bool _recording;
     private string? _recordingPath;
@@ -26,7 +28,7 @@ public partial class CameraTile : UserControl, IDisposable
 
         CameraNameText.Text = device.Name;
         CameraAddressText.Text = device.DisplayAddress;
-        StreamText.Text = device.UseSubStream ? "Substream" : "Main stream";
+        StreamText.Text = device.StreamTechnology;
 
         _player = new MediaPlayer(VlcRuntime.Instance);
         _player.Playing += (_, _) => Dispatcher.Invoke(() =>
@@ -61,11 +63,11 @@ public partial class CameraTile : UserControl, IDisposable
     private void StartPlayback()
     {
         var password = _repository.GetPassword(_device);
-        var uri = _device.BuildRtspUri(password);
+        var uri = _device.BuildStreamUri(password);
 
         if (uri is null)
         {
-            IdleText.Text = "Endereço RTSP inválido";
+            IdleText.Text = "Endereço de stream inválido";
             IdleText.Visibility = Visibility.Visible;
             return;
         }
@@ -73,7 +75,12 @@ public partial class CameraTile : UserControl, IDisposable
         _media?.Dispose();
         _media = new Media(VlcRuntime.Instance, uri);
 
-        _media.AddOption(":rtsp-tcp");
+        if (uri.Scheme.Equals("rtsp", StringComparison.OrdinalIgnoreCase) ||
+            uri.Scheme.Equals("rtsps", StringComparison.OrdinalIgnoreCase))
+        {
+            _media.AddOption(":rtsp-tcp");
+        }
+
         _media.AddOption(":network-caching=350");
         _media.AddOption(":clock-jitter=0");
         _media.AddOption(":clock-synchro=0");
@@ -132,6 +139,56 @@ public partial class CameraTile : UserControl, IDisposable
         }
     }
 
+    private OnvifClient GetOnvif()
+        => _onvif ??= new OnvifClient(_device, _repository.GetPassword(_device));
+
+    private async void PtzStart(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Button button || button.Tag is not string direction)
+            return;
+
+        var (pan, tilt, zoom) = direction switch
+        {
+            "left" => (-0.55, 0.0, 0.0),
+            "right" => (0.55, 0.0, 0.0),
+            "up" => (0.0, 0.55, 0.0),
+            "down" => (0.0, -0.55, 0.0),
+            "zoomin" => (0.0, 0.0, 0.55),
+            "zoomout" => (0.0, 0.0, -0.55),
+            _ => (0.0, 0.0, 0.0)
+        };
+
+        try
+        {
+            StatusText.Text = "PTZ";
+            await GetOnvif().ContinuousMoveAsync(pan, tilt, zoom);
+        }
+        catch
+        {
+            StatusText.Text = "PTZ N/D";
+        }
+    }
+
+    private async void PtzStop(object sender, MouseButtonEventArgs e)
+        => await StopPtzAsync();
+
+    private async void PtzStopClick(object sender, RoutedEventArgs e)
+        => await StopPtzAsync();
+
+    private async Task StopPtzAsync()
+    {
+        try
+        {
+            if (_onvif is not null)
+                await _onvif.StopAsync();
+            StatusText.Text = _isPlaying ? "AO VIVO" : "PRONTO";
+        }
+        catch
+        {
+            StatusText.Text = "PTZ N/D";
+        }
+    }
+
     private void SetStoppedUi()
     {
         _isPlaying = false;
@@ -160,5 +217,6 @@ public partial class CameraTile : UserControl, IDisposable
         VideoSurface.MediaPlayer = null;
         _media?.Dispose();
         _player.Dispose();
+        _onvif?.Dispose();
     }
 }
