@@ -1,4 +1,4 @@
-name: Build Windows binaries
+name: Build Windows binaries and release
 
 on:
   push:
@@ -10,10 +10,13 @@ on:
 permissions:
   contents: write
 
+env:
+  VERSION: '1.1.0'
+
 jobs:
   build:
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
       - name: Checkout
@@ -38,6 +41,7 @@ jobs:
           Remove-Item artifacts -Recurse -Force -ErrorAction SilentlyContinue
           New-Item -ItemType Directory -Force artifacts/portable | Out-Null
           New-Item -ItemType Directory -Force artifacts/dist | Out-Null
+          New-Item -ItemType Directory -Force artifacts/release | Out-Null
           dotnet publish src/Intelbras.CameraCenter.App/Intelbras.CameraCenter.App.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -o artifacts/portable
 
       - name: Setup MSVC
@@ -56,19 +60,21 @@ jobs:
           choco install innosetup --no-progress -y
           & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe" "installer\IntelbrasCameraCenter.iss"
 
-      - name: Prepare distributable tree
+      - name: Prepare portable and checksums
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force artifacts/dist/Portable | Out-Null
           Copy-Item artifacts/portable/* artifacts/dist/Portable -Recurse -Force
 
           @"
-          Intelbras Camera Center - Portable
-          ==================================
-          Execute Intelbras-Camera-Center.exe na pasta raiz do pacote/repositório.
+          Intelbras Camera Center v$env:VERSION - Portable
+          ===============================================
+          Execute Intelbras-Camera-Center.exe na pasta raiz.
           Requisito: Microsoft .NET 8 Desktop Runtime x64.
-          O instalador configura o runtime automaticamente quando necessário.
+          Protocolos/gateways: RTSP, RTSPS, HTTP/HLS, SRT, ONVIF, go2rtc/WebRTC.
           "@ | Set-Content artifacts/dist/PORTABLE-README.txt -Encoding UTF8
+
+          Compress-Archive -Path artifacts/portable/* -DestinationPath "artifacts/release/Intelbras-Camera-Center-Portable-v$env:VERSION.zip" -CompressionLevel Optimal
 
           $hashLines = @()
           Get-ChildItem artifacts/dist -File -Recurse | ForEach-Object {
@@ -76,15 +82,41 @@ jobs:
             $relative = $_.FullName.Substring((Resolve-Path artifacts/dist).Path.Length + 1)
             $hashLines += "$hash  $relative"
           }
-          $hashLines | Set-Content artifacts/dist/SHA256SUMS.txt -Encoding ascii
 
-      - name: Upload complete build
+          $portableZip = "artifacts/release/Intelbras-Camera-Center-Portable-v$env:VERSION.zip"
+          $zipHash = (Get-FileHash $portableZip -Algorithm SHA256).Hash.ToLower()
+          $hashLines += "$zipHash  Intelbras-Camera-Center-Portable-v$env:VERSION.zip"
+          $hashLines | Set-Content artifacts/release/SHA256SUMS.txt -Encoding ascii
+          Copy-Item artifacts/release/SHA256SUMS.txt artifacts/dist/SHA256SUMS.txt -Force
+
+      - name: Upload complete workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Intelbras-Camera-Center-Windows
-          path: artifacts/dist/**
+          name: Intelbras-Camera-Center-v1.1.0-Windows
+          path: |
+            artifacts/dist/**
+            artifacts/release/**
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "v$env:VERSION"
+          $repo = "${{ github.repository }}"
+          $setup = "artifacts/dist/Intelbras-Camera-Center-Setup-v$env:VERSION.exe"
+          $portable = "artifacts/release/Intelbras-Camera-Center-Portable-v$env:VERSION.zip"
+          $launcher = "artifacts/dist/Intelbras-Camera-Center.exe"
+          $hashes = "artifacts/release/SHA256SUMS.txt"
+
+          gh release view $tag --repo $repo *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $setup $portable $launcher $hashes --clobber --repo $repo
+          } else {
+            gh release create $tag $setup $portable $launcher $hashes --repo $repo --target "${{ github.sha }}" --title "Intelbras Camera Center v$env:VERSION — Global Interop" --notes-file RELEASE_NOTES_1.1.0.md
+          }
 
       - name: Publish binaries into main
         shell: pwsh
@@ -98,7 +130,7 @@ jobs:
           git add -f dist
 
           if (-not (git diff --cached --quiet)) {
-            git commit -m "build: update Windows installer, executable and portable [skip ci]"
+            git commit -m "build: publish Intelbras Camera Center v$env:VERSION binaries [skip ci]"
             git pull --rebase origin main
             git push origin HEAD:main
           }

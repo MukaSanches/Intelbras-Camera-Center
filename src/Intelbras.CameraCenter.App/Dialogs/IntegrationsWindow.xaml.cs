@@ -38,21 +38,24 @@ public partial class IntegrationsWindow : Window
     private async void TestGo2RtcClick(object sender, RoutedEventArgs e)
     {
         SyncForm();
-        var result = await CreateHub().ProbeGo2RtcAsync();
+        using var hub = CreateHub();
+        var result = await hub.ProbeGo2RtcAsync();
         StatusText.Text = string.Concat(result.Success ? "OK • " : "ERRO • ", result.Name, " • ", result.Detail);
     }
 
     private async void TestFrigateClick(object sender, RoutedEventArgs e)
     {
         SyncForm();
-        var result = await CreateHub().ProbeFrigateAsync();
+        using var hub = CreateHub();
+        var result = await hub.ProbeFrigateAsync();
         StatusText.Text = string.Concat(result.Success ? "OK • " : "ERRO • ", result.Name, " • ", result.Detail);
     }
 
     private async void TestHomeAssistantClick(object sender, RoutedEventArgs e)
     {
         SyncForm();
-        var result = await CreateHub().ProbeHomeAssistantAsync();
+        using var hub = CreateHub();
+        var result = await hub.ProbeHomeAssistantAsync();
         StatusText.Text = string.Concat(result.Success ? "OK • " : "ERRO • ", result.Name, " • ", result.Detail);
     }
 

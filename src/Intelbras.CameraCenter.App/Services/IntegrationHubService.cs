@@ -6,7 +6,7 @@ namespace Intelbras.CameraCenter.App.Services;
 
 public sealed record IntegrationProbeResult(bool Success, string Name, string Detail);
 
-public sealed class IntegrationHubService
+public sealed class IntegrationHubService : IDisposable
 {
     private readonly IntegrationSettings _settings;
     private readonly string _homeAssistantToken;
@@ -113,6 +113,8 @@ public sealed class IntegrationHubService
 
         return new Uri(baseUri, path).AbsoluteUri;
     }
+
+    public void Dispose() => _http.Dispose();
 
     private static string NormalizeName(string name)
     {

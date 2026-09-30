@@ -1,103 +1,110 @@
-# Intelbras Camera Center
+# Intelbras Camera Center v1.1.0 — Global Interop
 
-Intelbras Camera Center é um VMS/NVR desktop para Windows criado para centralizar câmeras IP, DVRs e NVRs Intelbras e equipamentos compatíveis com RTSP/ONVIF.
+VMS/NVR desktop para Windows voltado a câmeras IP, DVRs, NVRs Intelbras e ecossistemas ONVIF/RTSP.
 
 > Projeto comunitário independente. Não é um produto oficial nem afiliado à Intelbras S.A.
 
-## Download direto pela branch main
+## Download
 
-Após o workflow de build concluir, a pasta dist contém:
+A versão recomendada fica em **Releases**:
 
-- Intelbras-Camera-Center-Setup.exe — instalador Windows.
-- Intelbras-Camera-Center.exe — launcher da versão Portable.
-- Portable/ — aplicação portátil completa.
-- SHA256SUMS.txt — hashes SHA-256 dos binários.
+- Intelbras-Camera-Center-Setup-v1.1.0.exe
+- Intelbras-Camera-Center-Portable-v1.1.0.zip
+- Intelbras-Camera-Center.exe
+- SHA256SUMS.txt
 
-O instalador verifica o .NET 8 Desktop Runtime x64 e, quando necessário, baixa o runtime oficial da Microsoft.
+A pasta `dist/` da branch `main` também recebe o instalador, launcher e Portable expandido após cada build válida.
 
-## Arquitetura
+## Stack
 
-- .NET 8 / WPF.
-- WPF-UI 4.3.0 como toolkit visual Fluent/Windows moderno.
-- LibVLCSharp.WPF 3.10.1 + LibVLC 3.0.24 para RTSP, H.264/H.265 e reprodução multimídia.
-- ONVIF WS-Discovery implementado nativamente para localização automática de dispositivos.
-- Intelbras/Dahua-compatible CGI para informações, configuração e stream de eventos.
-- Windows DPAPI para proteger senhas localmente.
-- Build automatizado com GitHub Actions + Inno Setup.
+- .NET 8 / WPF
+- WPF-UI 4.3.0 / Fluent
+- LibVLCSharp + LibVLC
+- Intelbras/Dahua CGI
+- ONVIF WS-Discovery
+- ONVIF Media/PTZ/Events com WS-Security PasswordDigest
+- go2rtc
+- Frigate API
+- Home Assistant REST API
+- API local loopback
+- métricas Prometheus
+- Windows DPAPI
 
-## Funcionalidades implementadas na base 1.0
+## v1.1.0
 
-### Monitoramento
+### Vídeo e transporte
 
-- mosaico de câmeras;
-- stream principal e substream;
-- RTSP sobre TCP;
-- cache de baixa latência;
-- snapshots PNG;
-- gravação local por câmera em MPEG-TS;
-- suporte a URL RTSP personalizada;
-- padrão Intelbras/Dahua /cam/realmonitor?channel=N&subtype=0/1.
+- RTSP e RTSPS
+- URLs HTTP/HLS
+- SRT quando disponível no runtime LibVLC
+- URLs de stream personalizadas
+- H.264/H.265 via LibVLC
+- main stream e substream
+- snapshots
+- gravação MPEG-TS
+- cache de baixa latência
 
-### Descoberta e dispositivos
+### ONVIF
 
-- descoberta ONVIF/WS-Discovery via multicast;
-- câmera, DVR, NVR, Mibo e equipamento genérico;
-- múltiplos canais;
-- portas RTSP e HTTP configuráveis;
-- cadastro e edição local;
-- consulta magicBox.cgi;
-- cliente genérico para configManager.cgi.
+- WS-Discovery
+- descoberta de serviços Media, PTZ e Events
+- WS-Security UsernameToken PasswordDigest
+- obtenção automática de profile token
+- ContinuousMove
+- Stop
+- pan/tilt/zoom diretamente em cada tile
+- arquitetura alinhada aos Profiles T, G e M
 
-### Eventos inteligentes
+### go2rtc / WebRTC
 
-O monitor CGI usa eventManager.cgi?action=attach&codes=[All] e possui reconexão automática. A interface classifica eventos como movimento, IVS, cruzamento de linha, intrusão/região, tráfego/LPR e eventos faciais.
+A Central de Integrações conversa com a API do go2rtc e pode publicar uma câmera cadastrada como stream do gateway. Isso permite aproveitar os formatos oferecidos pelo go2rtc, incluindo WebRTC/WHEP, WHIP, HLS, MP4, MJPEG, RTMP, HomeKit e FFmpeg conforme a configuração do gateway.
 
-A disponibilidade depende do modelo e firmware do equipamento.
+### Frigate
 
-### Segurança
+Teste de conectividade pela API oficial de versão do Frigate, preparando o VMS para uso ao lado de NVR/AI.
 
-- senha nunca é salva em texto puro;
-- credenciais protegidas por CryptProtectData / Windows DPAPI;
-- dados vinculados ao usuário Windows atual;
-- aplicação executada sem privilégios administrativos;
-- nenhum log grava usuário/senha ou URI autenticada.
+### Home Assistant
 
-## Pastas locais
+- URL configurável
+- Long-Lived Access Token
+- autenticação Bearer
+- token criptografado pelo Windows DPAPI
+- teste da REST API pela interface
 
-%LOCALAPPDATA%\IntelbrasCameraCenter
+### API local e observabilidade
 
-- config\devices.json
-- recordings\
-- snapshots\
+Por padrão em `127.0.0.1:17777`:
 
-## Build
+- `GET /health`
+- `GET /api/cameras`
+- `GET /metrics`
 
-Requisitos de desenvolvimento:
+A API não expõe senhas, tokens ou URLs contendo credenciais.
 
-- Windows 10/11 x64;
-- Visual Studio 2022 ou .NET SDK 8;
-- Git.
+## Segurança
 
-Comandos:
+- credenciais protegidas com DPAPI;
+- token do Home Assistant protegido com DPAPI;
+- execução sem privilégio administrativo;
+- API local vinculada apenas ao loopback;
+- sem logs de senhas/tokens;
+- hashes SHA-256 produzidos a cada build.
 
-dotnet restore Intelbras.CameraCenter.sln
+## Build e Release
 
-dotnet build Intelbras.CameraCenter.sln -c Release
+O GitHub Actions executa:
 
-dotnet run --project src/Intelbras.CameraCenter.App
+`restore → build → publish → launcher → installer → Portable ZIP → SHA-256 → GitHub Release → dist/main`
 
-O workflow .github/workflows/build-windows.yml gera os binários e publica dist na própria branch main.
+## Arquivos locais
 
-## Compatibilidade planejada
+`%LOCALAPPDATA%\IntelbrasCameraCenter`
 
-A arquitetura foi desenhada para absorver gradualmente Intelbras VIP, Mibo iC/iM compatíveis com RTSP/ONVIF, DVR/NVR Intelbras, LPR, IVS, PTZ ONVIF, playback remoto, timeline, áudio bidirecional quando exposto, Frigate/go2rtc, Home Assistant, mapa de câmeras, regras, automações, multi-monitor, video wall, perfis de operador e exportação de evidências.
-
-## Fontes e projetos estudados
-
-O projeto foi desenhado após estudar iniciativas comunitárias relacionadas a Intelbras, RTSP, ONVIF, DVR/NVR, Mibo e VMS. Código de projetos de terceiros não foi simplesmente copiado para este repositório. Protocolos e conceitos foram reimplementados para manter uma base coerente e auditável.
-
-Veja THIRD_PARTY_NOTICES.md.
+- `config\devices.json`
+- `config\integrations.json`
+- `recordings\`
+- `snapshots\`
 
 ## Licença
 
-MIT para o código original deste repositório. Dependências mantêm suas próprias licenças.
+MIT para o código original. Dependências mantêm suas respectivas licenças. Veja `THIRD_PARTY_NOTICES.md`.

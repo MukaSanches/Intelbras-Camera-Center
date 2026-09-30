@@ -28,7 +28,7 @@
                         <TextBlock Text="IC" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="9" FontWeight="Bold"/>
                     </Border>
                     <TextBlock Text="Intelbras Camera Center" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                    <TextBlock Text="  •  VMS 1.0" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
+                    <TextBlock Text="  •  VMS 1.1 • GLOBAL INTEROP" Foreground="{StaticResource MutedTextBrush}" VerticalAlignment="Center"/>
                 </StackPanel>
                 <Button Grid.Column="1" Content="—" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="MinimizeClick"/>
                 <Button Grid.Column="2" Content="□" Background="Transparent" Foreground="{StaticResource TextBrush}" BorderThickness="0" Click="MaximizeClick"/>
@@ -86,7 +86,7 @@
                             </Grid.ColumnDefinitions>
                             <StackPanel>
                                 <TextBlock Text="Monitoramento ao vivo" FontSize="28" FontWeight="SemiBold"/>
-                                <TextBlock Text="RTSP acelerado por LibVLC, snapshots e gravação local por câmera."
+                                <TextBlock Text="RTSP/RTSPS, HTTP/HLS, SRT, ONVIF PTZ, snapshots, gravação e gateways WebRTC."
                                            Foreground="{StaticResource MutedTextBrush}" Margin="0,5,0,0"/>
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
@@ -116,6 +116,8 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Style="{StaticResource GhostButton}" Content="Consultar CGI" Click="DeviceInfoClick" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="Testar ONVIF" Click="ProbeOnvifClick" Margin="0,0,8,0"/>
+                                <Button Style="{StaticResource GhostButton}" Content="→ go2rtc" Click="PublishGo2RtcClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Editar" Click="EditCameraClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource GhostButton}" Content="Remover" Click="RemoveCameraClick" Margin="0,0,8,0"/>
                                 <Button Style="{StaticResource PrimaryButton}" Content="+ Adicionar" Click="AddCameraClick"/>
@@ -129,6 +131,7 @@
                                 <DataGridTextColumn Header="Tipo" Binding="{Binding Kind}" Width="*"/>
                                 <DataGridTextColumn Header="Canal" Binding="{Binding Channel}" Width="80"/>
                                 <DataGridTextColumn Header="RTSP" Binding="{Binding RtspPort}" Width="90"/>
+                                <DataGridTextColumn Header="Stream" Binding="{Binding StreamTechnology}" Width="140"/>
                                 <DataGridCheckBoxColumn Header="Substream" Binding="{Binding UseSubStream}" Width="100"/>
                                 <DataGridCheckBoxColumn Header="Eventos" Binding="{Binding EnableEvents}" Width="100"/>
                             </DataGrid.Columns>
@@ -202,6 +205,11 @@
                                                Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,7,0,0"/>
                                     <TextBlock Text="Dados locais" FontSize="16" FontWeight="SemiBold" Margin="0,20,0,0"/>
                                     <TextBlock x:Name="DataPathText" Foreground="{StaticResource MutedTextBrush}" FontFamily="Consolas" Margin="0,7,0,0"/>
+                                    <TextBlock Text="Interoperabilidade global" FontSize="16" FontWeight="SemiBold" Margin="0,22,0,0"/>
+                                    <TextBlock Text="go2rtc • WebRTC/WHEP/WHIP • Frigate • Home Assistant • Prometheus • ONVIF T/G/M"
+                                               Foreground="{StaticResource MutedTextBrush}" TextWrapping="Wrap" Margin="0,7,0,10"/>
+                                    <Button Style="{StaticResource PrimaryButton}" Content="Abrir Central de Integrações" Click="OpenIntegrationsClick"
+                                            HorizontalAlignment="Left"/>
                                 </StackPanel>
                             </Border>
                         </StackPanel>

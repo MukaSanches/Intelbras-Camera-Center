@@ -208,6 +208,61 @@ public partial class MainWindow : Window
         }
     }
 
+
+    private async void ProbeOnvifClick(object sender, RoutedEventArgs e)
+    {
+        if (DevicesGrid.SelectedItem is not CameraDevice device)
+            return;
+
+        try
+        {
+            GlobalStatusText.Text = "Consultando ONVIF...";
+            using var onvif = new OnvifClient(device, _repository.GetPassword(device));
+            var result = await onvif.ProbeAsync();
+
+            GlobalStatusText.Text = "ONVIF conectado";
+            MessageBox.Show(this, result, string.Concat("ONVIF • ", device.Name),
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            GlobalStatusText.Text = "ONVIF indisponível";
+            MessageBox.Show(this, ex.Message, "ONVIF",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private async void PublishGo2RtcClick(object sender, RoutedEventArgs e)
+    {
+        if (DevicesGrid.SelectedItem is not CameraDevice device)
+            return;
+
+        var source = device.BuildStreamUri(_repository.GetPassword(device));
+        if (source is null)
+        {
+            MessageBox.Show(this, "O dispositivo não possui um stream válido.",
+                "go2rtc", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        using var hub = new IntegrationHubService(
+            App.Integrations.Settings,
+            App.Integrations.GetHomeAssistantToken());
+
+        var result = await hub.PublishToGo2RtcAsync(device.Name, source);
+        GlobalStatusText.Text = result.Success ? "go2rtc conectado" : "Falha no go2rtc";
+
+        MessageBox.Show(this, result.Detail, result.Name,
+            MessageBoxButton.OK,
+            result.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+    }
+
+    private void OpenIntegrationsClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new IntegrationsWindow(App.Integrations) { Owner = this };
+        dialog.ShowDialog();
+    }
+
     private void StartEventMonitors()
     {
         foreach (var device in _repository.Devices.Where(x => x.EnableEvents))

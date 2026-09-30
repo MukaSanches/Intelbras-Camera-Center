@@ -76,9 +76,9 @@
                 </StackPanel>
 
                 <StackPanel Grid.Row="5" Grid.ColumnSpan="3" Margin="0,0,0,14">
-                    <TextBlock Text="RTSP personalizado (opcional)" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,5"/>
+                    <TextBlock Text="URL de stream personalizada (opcional)" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,0,5"/>
                     <TextBox x:Name="CustomRtspBox"/>
-                    <TextBlock Text="Vazio usa automaticamente /cam/realmonitor?channel=N&amp;subtype=0/1."
+                    <TextBlock Text="Aceita RTSP/RTSPS/HTTP/HLS/SRT e outros esquemas reconhecidos pelo LibVLC. Vazio usa /cam/realmonitor automaticamente."
                                Foreground="{StaticResource MutedTextBrush}" FontSize="11" Margin="0,4,0,0"/>
                 </StackPanel>
             </Grid>
